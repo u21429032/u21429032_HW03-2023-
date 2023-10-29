@@ -1,0 +1,217 @@
+﻿
+@{
+    Layout = null;
+}
+
+@model LibraryInc.Models.ChartData
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gender Distribution Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div id="sidebar" class="sidebar-toggle">
+        <ul class="nav nav-sidebar">
+            <li>
+                <a href="/">
+                    <i class="fa fa-home" aria-hidden="true"></i>
+                    <span>HOME</span>
+                </a>
+            </li>
+            <li role="separator" class="divider"></li>
+
+            <!-- chart types -->
+            <li data-toggle="collapse" href="#charttypes" aria-expanded="true" aria-controls="chart-types">
+                <a href="#">
+                    <i class="fa fa-area-chart" aria-hidden="true" style="width: 13px;"></i>
+                    <span>CHART TYPES</span>
+                </a>
+            </li>
+
+            <li>
+                <ul id="charttypes" class="sub-menu collapse @if(Request.Url.AbsoluteUri.ToString().Contains("Charts/")) { @Html.Raw("in") }">
+                    <li><a href="Classes">Class Report</a></li>
+                    <li><a href="Gender">Gender Reportt</a></li>
+                    <li><a href="Index">Book report</a></li>
+
+
+                </ul>
+            </li>
+            <!-- /chart types -->
+
+            <li role="separator" class="divider"></li>
+
+            <!--  features -->
+            <li data-toggle="collapse" href="#features" aria-expanded="false" aria-controls="features">
+                <a href="#">
+                    <i class="fa fa-flask" aria-hidden="true"></i>
+                    <span>More Analysis</span>
+                </a>
+            </li>
+
+            <li>
+                <ul id="features" class="sub-menu collapse @if(Request.Url.AbsoluteUri.ToString().Contains("features/")) { @Html.Raw("in") }">
+                    <li>analysis of choice</li>
+                    <li>Coffee </li>
+                    <li>Mug</a></li>
+                    <li>Beach Towel</li>
+
+                </ul>
+            </li>
+            <!--  /features -->
+
+            <li role="separator" class="divider"></li>
+
+            <!--  how to  -->
+            <li data-toggle="collapse" href="#howto" aria-expanded="false" aria-controls="how-to">
+                <a href="#">
+                    <i class="fa fa-wrench" aria-hidden="true"></i>
+                    <span>HOW TO</span>
+                </a>
+            </li>
+
+            <li>
+                <ul id="howto" class="sub-menu collapse @if(Request.Url.AbsoluteUri.ToString().Contains("howto/")) { @Html.Raw("in") }">
+                    <li><a href="/howto/enabledisableds/">Hide / Show DataSeries</a></li>
+                    <li><a href="/howto/livechart/">Dynamic / Live Chart</a></li>
+                    <li><a href="/howto/syncmultiplecharts/">Sync Mulitple Charts</a></li>
+                    <li><a href="/howto/adddatapointsfromuserinput/">Add Data Points From User Input</a></li>
+                    <li><a href="/howto/multiplechartsinapage/">Multiple Charts in a Page</a></li>
+                    <li><a href="/howto/playstoplivechart/">Play / Stop Live Chart</a></li>
+
+                </ul>
+            </li>
+            <!--  /how to  -->
+
+            <li role="separator" class="divider"></li>
+        </ul>
+    </div>
+    <!-- /#sidebar -->
+    <h1>Gender Distribution Report</h1>
+    <table>
+        <tr>
+            <th>Gender</th>
+            <th>Count</th>
+        </tr>
+        @for (int i = 0; i < Model.Labels.Count; i++)
+        {
+            <tr>
+                <td>@Model.Labels[i]</td>
+                <td>@Model.Values[i]</td>
+            </tr>
+        }
+    </table>
+
+    <div style="width: 50%;">
+        <canvas id="genderChart"></canvas>
+    </div>
+    <button id="exportChart">Export Chart</button>
+    <img id="exportedImage" style="display: none;">
+
+    <p>
+        Recommendations
+
+        Based on the findings of this report, the following recommendations are suggested:
+
+        Implement policies and initiatives to encourage equal participation of both genders in all academic programs.
+
+        Conduct awareness campaigns and workshops to promote gender diversity and inclusivity within the institution.
+
+        Continuously monitor and assess gender distribution to identify trends and areas that require intervention.
+
+        Conclusion
+
+        This report offers an overview of the gender distribution of students in our educational institution. It serves as a valuable resource for educational planning and ensuring equal access to education for all. Addressing gender disparities and promoting inclusivity is essential for the overall development and success of our institution.
+    </p>
+    <script>
+    var chartData = @Html.Raw(Json.Encode(Model));
+
+    var ctx = document.getElementById('genderChart').getContext('2d');
+    var genderChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartData.Labels,
+            datasets: [{
+                label: 'Gender Distribution',
+                data: chartData.Values,
+                backgroundColor: ['blue', 'pink'], // Customize colors as needed
+                borderColor: ['blue', 'pink'], // Border colors
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    function exportChart() {
+        var canvas = document.getElementById('genderChart');
+        var img = document.getElementById('exportedImage');
+        img.src = canvas.toDataURL('image/png');
+        img.style.display = 'block';
+
+        var downloadLink = document.createElement('a');
+        downloadLink.href = img.src;
+        downloadLink.download = 'gender_chart.png';
+        downloadLink.click();
+    }
+
+        document.getElementById('exportChart').addEventListener('click', exportChart);
+
+        $(function () {
+            // #sidebar-toggle-button
+            $('#sidebar-toggle-button').on('click', function () {
+                $('#sidebar').toggleClass('sidebar-toggle');
+                $('#page-content-wrapper').toggleClass('page-content-toggle');
+                fireResize();
+            });
+
+            // sidebar collapse behavior
+            $('#sidebar').on('show.bs.collapse', function () {
+                $('#sidebar').find('.collapse.in').collapse('hide');
+            });
+
+            // To make current link active
+            (function addActiveClassToNestedList() {
+                var pageURL = $(location).attr('href');
+                var URLSplits = pageURL.split('/');
+
+                var routeURL = '/' + URLSplits[URLSplits.length - 3] + '/' + URLSplits[URLSplits.length - 2] + '/';
+                var activeNestedList = $('.sub-menu > li > a[href="' + routeURL + '"]').parent();
+
+                if (activeNestedList.length !== 0 && !activeNestedList.hasClass('active')) {
+                    $('.sub-menu > li').removeClass('active');
+                    activeNestedList.addClass('active');
+                }
+            })();
+
+            function fireResize() {
+                if (document.createEvent) { // W3C
+                    var ev = document.createEvent('Event');
+                    ev.initEvent('resize', true, true);
+                    window.dispatchEvent(ev);
+                }
+                else { // IE
+                    element = document.documentElement;
+                    var event = document.createEventObject();
+                    element.fireEvent("onresize", event);
+                }
+            }
+
+        });
+    </script>
+
+</body>
+</html>
+

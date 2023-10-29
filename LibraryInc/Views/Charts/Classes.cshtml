@@ -1,0 +1,247 @@
+﻿<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- View (ClassDistributionChart.cshtml) -->
+@model LibraryInc.Models.ChartData
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Class Distribution Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+    <div id="sidebar" class="sidebar-toggle">
+        <ul class="nav nav-sidebar">
+            <li>
+                <a href="/">
+                    <i class="fa fa-home" aria-hidden="true"></i>
+                    <span>HOME</span>
+                </a>
+            </li>
+            <li role="separator" class="divider"></li>
+
+            <!-- chart types -->
+            <li data-toggle="collapse" href="#charttypes" aria-expanded="true" aria-controls="chart-types">
+                <a href="#">
+                    <i class="fa fa-area-chart" aria-hidden="true" style="width: 13px;"></i>
+                    <span>CHART TYPES</span>
+                </a>
+            </li>
+
+            <li>
+                <ul id="charttypes" class="sub-menu collapse @if(Request.Url.AbsoluteUri.ToString().Contains("Charts/")) { @Html.Raw("in") }">
+                    <li><a href="Classes">Class Report</a></li>
+                    <li><a href="Gender">Gender Reportt</a></li>
+                    <li><a href="~Index">Step Line Chart</a></li>
+
+
+                </ul>
+            </li>
+            <!-- /chart types -->
+
+            <li role="separator" class="divider"></li>
+
+            <!--  features -->
+            <li data-toggle="collapse" href="#features" aria-expanded="false" aria-controls="features">
+                <a href="#">
+                    <i class="fa fa-flask" aria-hidden="true"></i>
+                    <span>More Analysis</span>
+                </a>
+            </li>
+
+            <li>
+                <ul id="features" class="sub-menu collapse @if(Request.Url.AbsoluteUri.ToString().Contains("features/")) { @Html.Raw("in") }">
+                    <li>analysis of choice</li>
+                    <li>Coffee </li>
+                    <li>Mug</a></li>
+                    <li>Beach Towel</li>
+
+                </ul>
+            </li>
+            <!--  /features -->
+
+            <li role="separator" class="divider"></li>
+
+            <!--  how to  -->
+            <li data-toggle="collapse" href="#howto" aria-expanded="false" aria-controls="how-to">
+                <a href="#">
+                    <i class="fa fa-wrench" aria-hidden="true"></i>
+                    <span>HOW TO</span>
+                </a>
+            </li>
+
+            <li>
+                <ul id="howto" class="sub-menu collapse @if(Request.Url.AbsoluteUri.ToString().Contains("howto/")) { @Html.Raw("in") }">
+                    <li><a href="/howto/enabledisableds/">Hide / Show DataSeries</a></li>
+                    <li><a href="/howto/livechart/">Dynamic / Live Chart</a></li>
+                    <li><a href="/howto/syncmultiplecharts/">Sync Mulitple Charts</a></li>
+                    <li><a href="/howto/adddatapointsfromuserinput/">Add Data Points From User Input</a></li>
+                    <li><a href="/howto/multiplechartsinapage/">Multiple Charts in a Page</a></li>
+                    <li><a href="/howto/playstoplivechart/">Play / Stop Live Chart</a></li>
+
+                </ul>
+            </li>
+            <!--  /how to  -->
+
+            <li role="separator" class="divider"></li>
+        </ul>
+    </div>
+    <!-- /#sidebar -->
+    <canvas id="scatterChart" width="400" height="400"></canvas>
+
+    <h3>Students by Class:</h3>
+    <table>
+        <tr>
+            <th>Class Name</th>
+            <th>Total Students</th>
+        </tr>
+        @foreach (var studentClass in Model.StudentsByClass)
+        {
+            <tr>
+                <td>@studentClass.ClassName</td>
+                <td>@studentClass.TotalStudents</td>
+            </tr>
+        }
+    </table>
+
+    <div style="width: 50%;">
+        <canvas id="classPieChart"></canvas>
+    </div>
+
+    <button id="exportChart">Export Chart</button>
+    <img id="exportedImage" style="display: none;">
+
+    <script>
+    var classChartData = @Html.Raw(Json.Encode(Model)); // Adjust as needed
+
+    var classCtx = document.getElementById('classPieChart').getContext('2d');
+    var classPieChart = new Chart(classCtx, {
+        type: 'pie',
+        data: {
+            labels: classChartData.ClassNames,
+            datasets: [{
+                data: classChartData.StudentCounts,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    // Add more colors as needed
+                ],
+            }],
+        }
+    });
+
+    function exportChart() {
+        var canvas = document.getElementById('classPieChart');
+        var img = document.getElementById('exportedImage');
+        img.src = canvas.toDataURL('image/png');
+        img.style display = 'block';
+
+        var downloadLink = document.createElement('a');
+        downloadLink.href = img.src;
+        downloadLink.download = 'class_chart.png';
+        downloadLink.click();
+    }
+
+    document.getElementById('exportChart').addEventListener('click', exportChart);
+    </script>
+
+    <script>
+    // Get the data from Razor Model and prepare it for Chart.js
+    var studentsByClass = @Html.Raw(Json.Encode(Model.StudentsByClass));
+
+    var classLabels = studentsByClass.map(function(item) {
+        return item.ClassName;
+    });
+
+    var studentCounts = studentsByClass.map(function(item) {
+        return item.TotalStudents;
+    });
+
+    // Create a scatter plot using Chart.js
+    var ctx = document.getElementById('scatterChart').getContext('2d');
+    var scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            labels: classLabels,
+            datasets: [{
+                label: 'Students by Class',
+                data: studentsByClass,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Class Name'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Total Students'
+                    }
+                }
+            }
+        }
+    });
+
+        $(function () {
+            // #sidebar-toggle-button
+            $('#sidebar-toggle-button').on('click', function () {
+                $('#sidebar').toggleClass('sidebar-toggle');
+                $('#page-content-wrapper').toggleClass('page-content-toggle');
+                fireResize();
+            });
+
+            // sidebar collapse behavior
+            $('#sidebar').on('show.bs.collapse', function () {
+                $('#sidebar').find('.collapse.in').collapse('hide');
+            });
+
+            // To make current link active
+            (function addActiveClassToNestedList() {
+                var pageURL = $(location).attr('href');
+                var URLSplits = pageURL.split('/');
+
+                var routeURL = '/' + URLSplits[URLSplits.length - 3] + '/' + URLSplits[URLSplits.length - 2] + '/';
+                var activeNestedList = $('.sub-menu > li > a[href="' + routeURL + '"]').parent();
+
+                if (activeNestedList.length !== 0 && !activeNestedList.hasClass('active')) {
+                    $('.sub-menu > li').removeClass('active');
+                    activeNestedList.addClass('active');
+                }
+            })();
+
+            function fireResize() {
+                if (document.createEvent) { // W3C
+                    var ev = document.createEvent('Event');
+                    ev.initEvent('resize', true, true);
+                    window.dispatchEvent(ev);
+                }
+                else { // IE
+                    element = document.documentElement;
+                    var event = document.createEventObject();
+                    element.fireEvent("onresize", event);
+                }
+            }
+
+        });
+    </script>
+
+
+</body>
+</html>
